@@ -5,3 +5,4 @@ django-database-url==1.0.3
 psycopg2==2.9.5
 Django==4.1.4
 sqlparse==0.4.4
+python-decouple==3.8
