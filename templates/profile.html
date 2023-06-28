@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock title %}
+
+{% block body %}
+
+<div class="container mt-4">
+  <h1>Profile</h1>
+  <p>Welcome to your profile page!</p>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Personal Information</h5>
+    </div>
+    <div class="card-body">
+      <p><strong>Name:</strong> {{ user.name }}</p>
+      <p><strong>Username:</strong> {{ user.username }}</p>
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Date of Birth:</strong> {{ user.date_of_birth }}</p>
+    </div>
+  </div>
+
+  <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+</div>
+
+{% endblock body %}
