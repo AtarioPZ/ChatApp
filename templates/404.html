@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+
+    <div class="container d-flex justify-content-center align-items-start vh-80">
+        <div class="error-container rounded shadow p-4 text-center">
+            <h1>Page Not Found</h1>            
+            <p>Please login to access this page.</p>
+            <a href="{% url 'user_login' %}" class="btn btn-primary">Login</a>
+        </div>
+    </div>
+
+{% endblock body %}

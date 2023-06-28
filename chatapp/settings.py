@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'chatapp',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +61,7 @@ WSGI_APPLICATION = 'chatapp.wsgi.application'
 #    }
 #}
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -70,6 +72,7 @@ DATABASES = {
         'PORT': config('DB_PORT'),
     }
 }
+
 
 
 AUTH_PASSWORD_VALIDATORS = [
