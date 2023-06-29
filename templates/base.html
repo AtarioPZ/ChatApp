@@ -22,6 +22,8 @@
           </ul>
           <ul class="navbar-nav">
             {% if user.is_authenticated %}
+            <p>User is authenticated</p>
+            <p>Username: {{ user.username }}</p>
             <li class="nav-item">
               <a class="nav-link {% if request.path == '/profile/' %}active{% endif %}" href="{% url 'profile' %}">Profile</a>
             </li>
@@ -29,6 +31,7 @@
               <a class="nav-link" href="{% url 'logout' %}">Logout</a>
             </li>
             {% else %}
+            <p>User is not authenticated</p>
             <li class="nav-item">
               <a class="nav-link {% if request.path == '/user_login/' %}active{% endif %}" href="{% url 'user_login' %}">Login</a>
             </li>
@@ -36,7 +39,7 @@
           </ul>
         </div>        
       </div>
-    </nav>
+    </nav>    
     
     <div class="flex-grow-1">
       {% block body %} 
