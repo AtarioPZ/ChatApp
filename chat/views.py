@@ -23,9 +23,8 @@ def home(request):
             users.append(user)
 
         return render(request, 'home.html', {'is_logged_in': is_logged_in, 'users_data': users})
-    else:
-        messages.error(request, 'Please log in to access the full functionality.')
-        return redirect('user_login')
+    else:        
+        return render(request, 'home.html')
 
 def base(request):
     is_logged_in = request.session.get('is_logged_in', False)
