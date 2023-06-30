@@ -10,7 +10,12 @@ from django.contrib.auth import authenticate, login
 
 # Create your views here.
 def home(request):
-    return render(request, 'home.html')
+    is_logged_in = request.session.get('is_logged_in', False)
+    return render(request, 'home.html', {'is_logged_in': is_logged_in})
+
+def base(request):
+    is_logged_in = request.session.get('is_logged_in', False)
+    return render(request, 'base.html', {'is_logged_in': is_logged_in})
 
 def user_login(request):
     if request.method == 'POST':
@@ -25,9 +30,10 @@ def user_login(request):
                 stored_password = user_data[3]
                 if check_password(password, stored_password):
                     request.session['user_id'] = user_data[0]
-                    request.session['username'] = user_data[1]
+                    request.session['username'] = user_data[1]  
+                    request.session['is_logged_in'] = True                  
                     messages.success(request, 'Login success')
-                    return redirect('profile')
+                    return redirect('profile')                    
                 else:
                     messages.error(request, 'Incorrect password')
             else:
@@ -60,7 +66,7 @@ def signup(request):
     return render(request, 'signup.html')
 
 def profile(request):
-    user_id = request.session.get('user_id')
+    user_id = request.session.get('user_id')    
 
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM created_users WHERE id = %s", [user_id])
@@ -72,12 +78,13 @@ def profile(request):
         email = user_data[2]
         date_of_birth = user_data[5]
 
-        return render(request, 'profile.html', {'name': name, 'username': username, 'email': email, 'date_of_birth': date_of_birth})
+        is_logged_in = request.session.get('is_logged_in', False)
+        return render(request, 'profile.html', {'is_logged_in': is_logged_in, 'name': name, 'username': username, 'email': email, 'date_of_birth': date_of_birth})
     else:
         messages.error(request, 'User data not found.')
-        return redirect('home')
+        return redirect('home')    
     
-    return render(request, 'profile.html', {'user': request.user})
+    #return render(request, 'profile.html', {'user': request.user})
 
 def my_404(request, exception):
     return render(request, '404.html', status=404)

@@ -6,6 +6,20 @@
     <div class="container rounded shadow py-3">
         <center><h1>APP</h1></center>
     </div>
+    <hr />
+    <div class="container">
+        {% if is_logged_in %}
+            <p>Welcome, {{ request.session.username }}!</p>
+            <p>You are currently logged in.</p>
+            <!-- Additional content for logged-in users -->
+        {% else %}
+            <p>Welcome to the app!</p>
+            <p>Please log in to access the full functionality.</p>
+            <!-- Additional content for non-logged-in users -->
+        {% endif %}
+    </div>
 </div>
+
+
 
 {% endblock body %}
