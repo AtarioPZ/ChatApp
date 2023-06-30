@@ -9,17 +9,33 @@
     <hr />
     <div class="container">
         {% if is_logged_in %}
-            <p>Welcome, {{ request.session.username }}!</p>
-            <p>You are currently logged in.</p>
-            <!-- Additional content for logged-in users -->
+            <div class="row">
+                <div class="col-md-8">
+                    <p>Welcome, {{ request.session.username }}!</p>
+                    <p>You are currently logged in.</p>
+                </div>
+                <div class="col-md-4 rounded shadow">
+                    <h3>Registered Users</h3>
+                    <ul class="list-group">
+                        {% for user in users_data %}
+                            {% if user != request.user %}
+                                <li class="list-group-item">
+                                    {{ user.username }}
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         {% else %}
-            <p>Welcome to the app!</p>
-            <p>Please log in to access the full functionality.</p>
-            <!-- Additional content for non-logged-in users -->
+            <div class="row">
+                <div class="col-md-8">
+                    <p>Welcome to the app!</p>
+                    <p>Please log in to access the full functionality.</p>
+                </div>
+            </div>
         {% endif %}
     </div>
 </div>
-
-
 
 {% endblock body %}

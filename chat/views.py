@@ -3,15 +3,29 @@ from django.http import HttpResponse
 from django.db import connection
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
-from django.urls import reverse
-from django.contrib.auth.decorators import login_required
 from .models import CreatedUser
-from django.contrib.auth import authenticate, login
 
 # Create your views here.
 def home(request):
     is_logged_in = request.session.get('is_logged_in', False)
-    return render(request, 'home.html', {'is_logged_in': is_logged_in})
+    
+    if is_logged_in:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, username FROM created_users WHERE username != %s", [request.session['username']])
+            users_data = cursor.fetchall()
+
+        users = []
+        for user_data in users_data:
+            user = {
+                'id': user_data[0],
+                'username': user_data[1],
+            }
+            users.append(user)
+
+        return render(request, 'home.html', {'is_logged_in': is_logged_in, 'users_data': users})
+    else:
+        messages.error(request, 'Please log in to access the full functionality.')
+        return redirect('user_login')
 
 def base(request):
     is_logged_in = request.session.get('is_logged_in', False)
@@ -82,9 +96,7 @@ def profile(request):
         return render(request, 'profile.html', {'is_logged_in': is_logged_in, 'name': name, 'username': username, 'email': email, 'date_of_birth': date_of_birth})
     else:
         messages.error(request, 'User data not found.')
-        return redirect('home')    
-    
-    #return render(request, 'profile.html', {'user': request.user})
+        return redirect('home')
 
 def my_404(request, exception):
     return render(request, '404.html', status=404)
