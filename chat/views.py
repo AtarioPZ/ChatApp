@@ -3,7 +3,8 @@ from django.http import HttpResponse
 from django.db import connection
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
-from .models import CreatedUser
+import openai
+from decouple import config
 
 # Create your views here.
 def home(request):
@@ -23,8 +24,18 @@ def home(request):
             users.append(user)
 
         return render(request, 'home.html', {'is_logged_in': is_logged_in, 'users_data': users})
-    else:        
-        return render(request, 'home.html')
+    else:
+        if request.method == 'POST':
+            user_message = request.POST.get('message')
+            bot_response = get_chatbot_response(user_message)
+            chat_history = [
+                {'sender': 'user', 'content': user_message},
+                {'sender': 'bot', 'content': bot_response},
+            ]
+        else:
+            chat_history = []
+      
+        return render(request, 'home.html', {'chat_history': chat_history})
 
 def base(request):
     is_logged_in = request.session.get('is_logged_in', False)
@@ -96,6 +107,23 @@ def profile(request):
     else:
         messages.error(request, 'User data not found.')
         return redirect('home')
+    
+def get_chatbot_response(message):
+    openai.api_key = config('OPENAI_API_KEY')
+
+    # Send user message to the chatbot model and get the response
+    response = openai.Completion.create(
+        engine='text-davinci-003',
+        prompt=message,
+        max_tokens=50,
+        n=1,
+        stop=None,
+        temperature=0.7,
+    )
+
+    # Extract and return the chatbot's reply
+    return response.choices[0].text.strip()
+
 
 def my_404(request, exception):
     return render(request, '404.html', status=404)

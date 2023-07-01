@@ -33,6 +33,21 @@
                     <p>Welcome to the app!</p>
                     <p>Please log in to access the full functionality.</p>
                 </div>
+                <div class="col-md-4 chatbot rounded shadow">
+                    <h3>Chatbot</h3>
+                    <div class="chatbot-messages">
+                        {% for message in chat_history %}
+                            <div class="message {% if message.sender == 'user' %}user-message{% else %}bot-message{% endif %}">
+                                {{ message.content }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="text" name="message" placeholder="Type your message" required>
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
             </div>
         {% endif %}
     </div>
