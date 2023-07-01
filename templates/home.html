@@ -7,12 +7,12 @@
         <center><h1>APP</h1></center>
     </div>
     <hr />
-    <div class="container">
+    <div class="container">        
         {% if is_logged_in %}
             <div class="row">
                 <div class="col-md-8">
                     <p>Welcome, {{ request.session.username }}!</p>
-                    <p>You are currently logged in.</p>
+                    <p>You are currently logged in.</p>                    
                 </div>
                 <div class="col-md-4 rounded shadow">
                     <h3>Registered Users</h3>
@@ -34,20 +34,41 @@
                     <p>Please log in to access the full functionality.</p>
                 </div>
                 <div class="col-md-4 chatbot rounded shadow">
-                    <h3>Chatbot</h3>
-                    <div class="chatbot-messages">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Chatbot</h3>
+                        {% if chat_history %}
+                            <form method="post" action="{% url 'reset_session' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-secondary">Reset Session</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <hr />
+                    <div class="chatbot-messages rounded shadow bg-light p-3" style="max-height: 250px; overflow-y: scroll;">
                         {% for message in chat_history %}
                             <div class="message {% if message.sender == 'user' %}user-message{% else %}bot-message{% endif %}">
+                                <span class="message-sender {% if message.sender == 'user' %}user-sender{% else %}bot-sender{% endif %}">
+                                    {% if message.sender == 'user' %}
+                                        <strong class="text-primary">User:</strong>
+                                    {% else %}
+                                        <strong class="text-success">Chatbot:</strong>
+                                    {% endif %}
+                                </span>
                                 {{ message.content }}
                             </div>
                         {% endfor %}
                     </div>
                     <form method="post">
                         {% csrf_token %}
-                        <input type="text" name="message" placeholder="Type your message" required>
-                        <button type="submit">Send</button>
+                        <div class="input-group mb-3">
+                            <input type="text" name="message" class="form-control" placeholder="Type your message" required>
+                            <div class="input-group-append">
+                                <br />
+                                <button type="submit" class="btn btn-primary">Send</button>
+                            </div>
+                        </div>
                     </form>
-                </div>
+                </div>                
             </div>
         {% endif %}
     </div>

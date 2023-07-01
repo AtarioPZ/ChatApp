@@ -109,21 +109,25 @@ def profile(request):
         return redirect('home')
     
 def get_chatbot_response(message):
-    openai.api_key = config('OPENAI_API_KEY')
+    openai.api_key = config('OPENAI_API_KEY')   
 
     # Send user message to the chatbot model and get the response
-    response = openai.Completion.create(
-        engine='text-davinci-003',
-        prompt=message,
-        max_tokens=50,
-        n=1,
-        stop=None,
-        temperature=0.7,
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": message}
+        ]
     )
 
     # Extract and return the chatbot's reply
-    return response.choices[0].text.strip()
+    return response['choices'][0]['message']['content']
 
+def reset_session(request):
+    if request.method == 'POST':
+        request.session.flush()
+        messages.success(request, 'Chat session has been reset.')
+    return redirect('home')
 
 def my_404(request, exception):
     return render(request, '404.html', status=404)
