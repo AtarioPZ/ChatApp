@@ -14,6 +14,7 @@ urlpatterns = [
     path("profile/", views.profile, name='profile'),
     path('logout/', views.logout, name='logout'),
     path('reset-session/', views.reset_session, name='reset_session'),
+    path('chat/', views.chatpage, name='chatpage'),
     
 ]
 

@@ -129,6 +129,10 @@ def reset_session(request):
         messages.success(request, 'Chat session has been reset.')
     return redirect('home')
 
+def chatpage(request):
+    is_logged_in = request.session.get('is_logged_in', False)
+    return render(request, 'chatpage.html', {'is_logged_in': is_logged_in})
+
 def my_404(request, exception):
     return render(request, '404.html', status=404)
 
