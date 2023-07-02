@@ -1,30 +1,34 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<div class="container p-3">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">WebChat</h4>
+    {% if is_logged_in %}
+        <div class="container p-3">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">WebChat</h4>
+                        </div>
+                        <div class="card-body chat-container">
+                            <div class="message-list">
+                                <!-- Messages will be dynamically added here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body chat-container">
-                    <div class="message-list">
-                        <!-- Messages will be dynamically added here -->
-                    </div>                    
+                <div class="col-md-4">
+                    <div class="card rounded shadow">
+                        <div class="card-header">
+                            <h4 class="card-title">Friends</h4>
+                        </div>
+                        <div class="card-body user-list">
+                            <!-- User list will be dynamically added here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card rounded shadow">
-                <div class="card-header">
-                    <h4 class="card-title">Friends</h4>
-                </div>
-                <div class="card-body user-list">
-                    <!-- User list will be dynamically added here -->
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    {% else %}
+        <script>window.location.href = "{% url 'user_login' %}";</script>
+    {% endif %}
 {% endblock body %}

@@ -5,6 +5,8 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 import openai
 from decouple import config
+from datetime import date
+from django.utils import timezone
 
 # Create your views here.
 def home(request):
@@ -55,7 +57,11 @@ def user_login(request):
                 if check_password(password, stored_password):
                     request.session['user_id'] = user_data[0]
                     request.session['username'] = user_data[1]  
-                    request.session['is_logged_in'] = True                  
+                    request.session['is_logged_in'] = True  
+
+                    # Update last_seen in the created_users table
+                    cursor.execute("UPDATE created_users SET last_seen = %s WHERE id = %s", [timezone.now(), user_data[0]])
+
                     messages.success(request, 'Login success')
                     return redirect('profile')                    
                 else:
@@ -71,6 +77,8 @@ def logout(request):
     request.session.clear()
     return redirect('home')
 
+from datetime import date
+
 def signup(request):
     if request.method == 'POST':
         name = request.POST['name']
@@ -78,16 +86,18 @@ def signup(request):
         email = request.POST['email']
         password = request.POST['password']
         date_of_birth = request.POST['date_of_birth']
+        registration_date = date.today()
 
         hashed_password = make_password(password)
 
         with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO created_users (name, username, email, password, date_of_birth) VALUES (%s, %s, %s, %s, %s)",
-                           (name, username, email, hashed_password, date_of_birth))            
+            cursor.execute("INSERT INTO created_users (name, username, email, password, date_of_birth, registration_date, online_status, account_status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                           (name, username, email, hashed_password, date_of_birth, registration_date, True, "Online"))            
         messages.success(request, 'Sign up success')
         return redirect('user_login')
     
     return render(request, 'signup.html')
+
 
 def profile(request):
     user_id = request.session.get('user_id')    
@@ -101,12 +111,16 @@ def profile(request):
         username = user_data[1]
         email = user_data[2]
         date_of_birth = user_data[5]
+        registration_date = user_data[11]
+        online_status = user_data[10]
+        account_status = user_data[18]
+        last_seen = user_data[7]
 
         is_logged_in = request.session.get('is_logged_in', False)
-        return render(request, 'profile.html', {'is_logged_in': is_logged_in, 'name': name, 'username': username, 'email': email, 'date_of_birth': date_of_birth})
+        return render(request, 'profile.html', {'is_logged_in': is_logged_in, 'name': name, 'username': username, 'email': email, 'date_of_birth': date_of_birth, 'registration_date': registration_date, 'online_status': online_status, 'account_status': account_status, 'last_seen': last_seen})
     else:
         messages.error(request, 'User data not found.')
-        return redirect('home')
+        return redirect('user_login')
     
 def get_chatbot_response(message):
     openai.api_key = config('OPENAI_API_KEY')   

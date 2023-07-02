@@ -4,7 +4,7 @@
 
 {% block body %}
 
-<div class="container mt-4">
+<div class="container mt-4 pb-3">
   <h1>Profile</h1>  
   <p>Welcome to your profile page!</p>
   <div class="card mb-4">
@@ -12,14 +12,199 @@
       <h5>Personal Information</h5>
     </div>
     <div class="card-body">
-      <p><strong>Name:</strong> {{ name }}</p>
-      <p><strong>Username:</strong> {{ username }}</p>
-      <p><strong>Email:</strong> {{ email }}</p>
-      <p><strong>Date of Birth:</strong> {{ date_of_birth }}</p>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Name:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if name %}
+              <span class="editable-field">{{ name }}</span>
+            {% else %}
+              <textarea class="editable-field" disabled></textarea>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Username:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>{{ username }}</p>
+        </div>
+        <div class="col-md-2"></div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Email:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if email %}
+              <span class="editable-field">{{ email }}</span>
+            {% else %}
+              <textarea class="editable-field" disabled></textarea>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Date of Birth:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if date_of_birth %}
+              <span class="editable-field">{{ date_of_birth }}</span>
+            {% else %}
+              <textarea class="editable-field" disabled></textarea>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Last Seen:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if last_seen %}
+              <span class="editable-field">{{ last_seen }}</span>
+            {% else %}
+              <input type="text" class="editable-field" disabled>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Online Status:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if online_status %}
+              <span class="editable-field">{{ online_status }}</span>
+            {% else %}
+              <input type="text" class="editable-field" disabled>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Registration Date:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if registration_date %}
+              <span class="editable-field">{{ registration_date }}</span>
+            {% else %}
+              <input type="text" class="editable-field" disabled>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Notification Preferences:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if notification_preferences %}
+              <span class="editable-field">{{ notification_preferences }}</span>
+            {% else %}
+              <input type="text" class="editable-field" disabled>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4">
+          <p><strong>Account Status:</strong></p>
+        </div>
+        <div class="col-md-6">
+          <p>
+            {% if account_status %}
+              <span class="editable-field">{{ account_status }}</span>
+            {% else %}
+              <input type="text" class="editable-field" disabled>
+            {% endif %}
+          </p>
+        </div>
+        <div class="col-md-2">
+          <button class="edit-button" type="button" title="Edit" style="border: none; outline: none;" onclick="enableEdit(this)">
+            <img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">
+          </button>
+        </div>
+      </div>
     </div>
   </div>
+  <button id="save-button" class="btn btn-primary" type="button" title="Save" style="border: none; outline: none;" onclick="confirmSave()">
+    Save
+  </button>
+  
 
-  <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+  <div class="d-flex justify-content-end">
+    <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>    
+  </div>
 </div>
+
+<script>
+  function enableEdit(button) {
+    const row = button.parentNode.parentNode;
+    const textField = row.querySelector('.editable-field');
+    textField.disabled = !textField.disabled;
+    textField.focus();
+    button.innerHTML = textField.disabled ? '<img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">' : '<img src="https://i.ibb.co/TckXpY0/tick.png" alt="Save" width="15" height="15">';
+  }
+
+  function confirmSave() {
+    const fields = document.getElementsByClassName('editable-field');
+    for (let i = 0; i < fields.length; i++) {
+      fields[i].disabled = true;
+    }
+    const editButtons = document.getElementsByClassName('edit-button');
+    for (let i = 0; i < editButtons.length; i++) {
+      editButtons[i].innerHTML = '<img src="https://i.ibb.co/nwd4swv/edit.png" alt="Edit" width="15" height="15">';
+    }
+    alert('Changes saved successfully!');
+  }
+</script>
 
 {% endblock body %}
