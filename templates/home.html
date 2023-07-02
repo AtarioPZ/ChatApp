@@ -3,20 +3,21 @@
 {% block body %}
 
 <div>
-    <div class="container rounded shadow py-3">
-        <center><h1>APP</h1></center>
+    <div class="container py-3">        
+        <center><img src="https://i.ibb.co/Q9Y4ppW/WEBCHAT.png" alt="WEBCHAT"></center>
     </div>
-    <hr />
-    <div class="container">        
+    <div class="container p-3">        
         {% if is_logged_in %}
             <div class="row">
                 <div class="col-md-8">
-                    <p>Welcome, {{ request.session.username }}!</p>
-                    <p>You are currently logged in.</p>                    
+                    <div class="alert alert-success" role="alert">
+                        <h4 class="alert-heading">Welcome, {{ request.session.username }}!</h4>
+                        <p>You are currently logged in.</p>
+                    </div>                 
                 </div>
                 <div class="col-md-4 rounded shadow">
-                    <h3>Registered Users</h3>
-                    <ul class="list-group">
+                    <span class="badge bg-dark rounded-pill"><h3>Registered Users</h3></span>
+                    <ul class="list-group p-2">
                         {% for user in users_data %}
                             {% if user != request.user %}
                                 <li class="list-group-item">
@@ -30,8 +31,10 @@
         {% else %}
             <div class="row">
                 <div class="col-md-8">
-                    <p>Welcome to the app!</p>
-                    <p>Please log in to access the full functionality.</p>
+                    <div class="alert alert-primary" role="alert">
+                        <h4 class="alert-heading">Welcome to the app!</h4>
+                        <p>Please log in to access the full functionality.</p>
+                    </div>
                 </div>
                 <div class="col-md-4 chatbot rounded shadow">
                     <div class="d-flex justify-content-between align-items-center">
@@ -43,7 +46,6 @@
                             </form>
                         {% endif %}
                     </div>
-                    <hr />
                     <div class="chatbot-messages rounded shadow bg-light p-3" style="max-height: 250px; overflow-y: scroll;">
                         {% for message in chat_history %}
                             <div class="message {% if message.sender == 'user' %}user-message{% else %}bot-message{% endif %}">
