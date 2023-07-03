@@ -5,8 +5,98 @@
 {% block body %}
 
 <div class="container mt-4 pb-3">
-  <h1>Profile</h1>  
+  <div class="d-flex justify-content-between align-items-center">
+    <h1>Profile</h1>
+    <button id="friends-button" class="btn btn-primary" type="button" onclick="openFriendsModal()">Friends</button>
+  </div>
+  
   <p>Welcome to your profile page!</p>
+    
+  <!-- Friends Modal -->
+<div id="friends-modal" class="modal" style="display: none; justify-content: center; align-items: center; margin-top: 50px;">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Friends</h5>
+        <button type="button" class="close" onclick="closeFriendsModal()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" id="friends-tab" data-toggle="tab" href="#friends-section">Friends</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="add-friends-tab" data-toggle="tab" href="#add-friends-section">Add Friends</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="incoming-tab" data-toggle="tab" href="#incoming-section">Incoming</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="pending-tab" data-toggle="tab" href="#pending-section">Pending</a>
+          </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+          <!-- Friends Section -->
+          <div id="friends-section" class="tab-pane fade show active">
+            <ul id="friends-list" class="friends-list">
+              {% for friend in friends %}
+              <li>{{ friend.username }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- Add Friends Section -->
+          <div id="add-friends-section" class="tab-pane fade">
+            <form id="add-friend-form" method="POST" onsubmit="return confirmSendFriendRequest()">
+              {% csrf_token %}
+              <div class="form-group">
+                <input type="text" class="form-control" id="friend-username" name="friend_username" placeholder="Enter username" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Add Friend</button>
+            </form>
+          </div>
+
+          <!-- Incoming Section -->
+          <div id="incoming-section" class="tab-pane fade">
+            <ul id="incoming-list" class="incoming-list">
+              {% for incoming_user in incoming_requests %}
+              <li>{{ incoming_user.username }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          
+         <!-- Pending Section -->
+          <div id="pending-section" class="tab-pane fade">
+            <ul id="pending-list" class="pending-list">
+              {% for pending_user in pending_requests %}
+              <li>{{ pending_user.username }}</li>
+              {% endfor %}
+            </ul>
+          </div>        
+      </div>
+
+        <!-- Success Message -->
+        {% if success_message %}
+        <div class="alert alert-success mt-3">
+          {{ success_message }}
+        </div>
+        {% endif %}
+
+        <!-- Error Message -->
+        {% if error_message %}
+        <div class="alert alert-danger mt-3">
+          {{ error_message }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
   <div class="card mb-4">
     <div class="card-header">
       <h5>Personal Information</h5>
@@ -186,6 +276,7 @@
 </div>
 
 <script>
+  //Edit Button Script
   function enableEdit(button) {
     const row = button.parentNode.parentNode;
     const textField = row.querySelector('.editable-field');
@@ -205,6 +296,38 @@
     }
     alert('Changes saved successfully!');
   }
+
+  //Friends Script
+  const friendsModal = document.getElementById('friends-modal');
+  const friendsButton = document.getElementById('friends-button');
+  
+  function openFriendsModal() {
+    friendsModal.style.display = 'block';
+
+    document.getElementById('friends-tab').classList.add('active');
+    document.getElementById('add-friends-tab').classList.remove('active');
+    document.getElementById('incoming-tab').classList.remove('active');
+    document.getElementById('pending-tab').classList.remove('active');
+
+    document.getElementById('friends-section').classList.add('show', 'active');
+    document.getElementById('add-friends-section').classList.remove('show', 'active');
+    document.getElementById('incoming-section').classList.remove('show', 'active');
+    document.getElementById('pending-section').classList.remove('show', 'active');
+  }
+  
+  function closeFriendsModal() {
+    friendsModal.style.display = 'none';
+
+    document.getElementById('friend-username').value = '';
+
+    document.getElementById('success-message').style.display = 'none';
+    document.getElementById('error-message').style.display = 'none';
+  }
+  
+  function confirmSendFriendRequest() {
+    return confirm("Are you sure you want to send a friend request?");
+  }
+
 </script>
 
 {% endblock body %}

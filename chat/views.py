@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
 from django.db import connection
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
@@ -7,6 +6,7 @@ import openai
 from decouple import config
 from datetime import date
 from django.utils import timezone
+from django.http import JsonResponse
 
 # Create your views here.
 def home(request):
@@ -98,29 +98,118 @@ def signup(request):
     
     return render(request, 'signup.html')
 
-
 def profile(request):
-    user_id = request.session.get('user_id')    
+    user_id = request.session.get('user_id')
 
+    # Fetch user data
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM created_users WHERE id = %s", [user_id])
         user_data = cursor.fetchone()
 
-    if user_data:
-        name = user_data[4]
-        username = user_data[1]
-        email = user_data[2]
-        date_of_birth = user_data[5]
-        registration_date = user_data[11]
-        online_status = user_data[10]
-        account_status = user_data[18]
-        last_seen = user_data[7]
+        if user_data:
+            name = user_data[4]
+            username = user_data[1]
+            email = user_data[2]
+            date_of_birth = user_data[5]
+            registration_date = user_data[11]
+            online_status = user_data[10]
+            account_status = user_data[18]
+            last_seen = user_data[7]
 
-        is_logged_in = request.session.get('is_logged_in', False)
-        return render(request, 'profile.html', {'is_logged_in': is_logged_in, 'name': name, 'username': username, 'email': email, 'date_of_birth': date_of_birth, 'registration_date': registration_date, 'online_status': online_status, 'account_status': account_status, 'last_seen': last_seen})
-    else:
-        messages.error(request, 'User data not found.')
-        return redirect('user_login')
+            is_logged_in = request.session.get('is_logged_in', False)
+
+            # Fetch friend data with status 'accepted'
+            cursor.execute("SELECT friend_id FROM user_friends WHERE user_id = %s AND status = %s", [user_id, 'accepted'])
+            friend_ids = cursor.fetchall()
+
+            friends = []
+            for friend_id in friend_ids:
+                cursor.execute("SELECT * FROM created_users WHERE id = %s", [friend_id[0]])
+                friend_data = cursor.fetchone()
+                friends.append({
+                    'id': friend_data[0],
+                    'username': friend_data[1],
+                    'name': friend_data[4]
+                })
+
+            # Fetch friend data with status 'pending'
+            cursor.execute("SELECT friend_id FROM user_friends WHERE user_id = %s AND status = %s", [user_id, 'pending'])
+            pending_friend_ids = cursor.fetchall()
+
+            pending_users = []
+            for pending_friend_id in pending_friend_ids:
+                cursor.execute("SELECT * FROM created_users WHERE id = %s", [pending_friend_id[0]])
+                pending_friend_data = cursor.fetchone()
+                pending_users.append({
+                    'id': pending_friend_data[0],
+                    'username': pending_friend_data[1],
+                    'name': pending_friend_data[4]
+                })
+
+            # Fetch friend data with status 'incoming'
+            cursor.execute("SELECT user_id FROM user_friends WHERE friend_id = %s AND status = %s", [user_id, 'pending'])
+            incoming_friend_ids = cursor.fetchall()
+
+            incoming_users = []
+            for incoming_friend_id in incoming_friend_ids:
+                cursor.execute("SELECT * FROM created_users WHERE id = %s", [incoming_friend_id[0]])
+                incoming_friend_data = cursor.fetchone()
+                incoming_users.append({
+                    'id': incoming_friend_data[0],
+                    'username': incoming_friend_data[1],
+                    'name': incoming_friend_data[4]
+                })
+
+            if request.method == 'POST':
+                friend_username = request.POST.get('friend_username', '')
+
+                # Check if the friend username exists in the database
+                cursor.execute("SELECT id FROM created_users WHERE username = %s", [friend_username])
+                friend_result = cursor.fetchone()
+
+                if friend_result:
+                    friend_id = friend_result[0]
+
+                    cursor.execute("INSERT INTO user_friends (user_id, friend_id, status) VALUES (%s, %s, %s)", [user_id, friend_id, 'pending'])
+                    messages.success(request, f"Friend request sent to {friend_username}!")
+                    return redirect('profile')
+                else:
+                    error_message = 'Please enter correct username (case sensitive)'
+                    return render(request, 'profile.html', {
+                        'is_logged_in': is_logged_in,
+                        'name': name,
+                        'username': username,
+                        'email': email,
+                        'date_of_birth': date_of_birth,
+                        'registration_date': registration_date,
+                        'online_status': online_status,
+                        'account_status': account_status,
+                        'last_seen': last_seen,
+                        'friends': friends,
+                        'pending_requests': pending_users,
+                        'incoming_requests': incoming_users,
+                        'error_message': error_message,
+                    })
+
+            return render(request, 'profile.html', {
+                'is_logged_in': is_logged_in,
+                'name': name,
+                'username': username,
+                'email': email,
+                'date_of_birth': date_of_birth,
+                'registration_date': registration_date,
+                'online_status': online_status,
+                'account_status': account_status,
+                'last_seen': last_seen,
+                'friends': friends,
+                'pending_requests': pending_users,
+                'incoming_requests': incoming_users,
+            })
+
+    # Handle case when user data is not found
+    messages.error(request, 'User data not found.')
+    return redirect('user_login')
+
     
 def get_chatbot_response(message):
     openai.api_key = config('OPENAI_API_KEY')   
