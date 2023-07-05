@@ -12,7 +12,7 @@
   
   <p>Welcome to your profile page!</p>
     
-  <!-- Friends Modal -->
+<!-- Friends Modal -->
 <div id="friends-modal" class="modal" style="display: none; justify-content: center; align-items: center; margin-top: 50px;">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -43,7 +43,7 @@
           <div id="friends-section" class="tab-pane fade show active">
             <ul id="friends-list" class="friends-list">
               {% for friend in friends %}
-              <li>{{ friend.username }}</li>
+              <li><strong>{{ friend.username }}</strong> ({{ friend.name }})</li>
               {% endfor %}
             </ul>
           </div>
@@ -55,46 +55,78 @@
               <div class="form-group">
                 <input type="text" class="form-control" id="friend-username" name="friend_username" placeholder="Enter username" required>
               </div>
+              <input type="hidden" name="friend_id" value="">
+              <input type="hidden" name="action" value="add">
               <button type="submit" class="btn btn-primary">Add Friend</button>
             </form>
           </div>
 
           <!-- Incoming Section -->
           <div id="incoming-section" class="tab-pane fade">
+            {% if incoming_requests %}
             <ul id="incoming-list" class="incoming-list">
               {% for incoming_user in incoming_requests %}
-              <li>{{ incoming_user.username }}</li>
+              <li>
+                <div class="d-flex bd-highlight">
+                  <div class="p-2 flex-grow-1 bd-highlight">
+                    <strong>{{ incoming_user.username }}</strong> ({{ incoming_user.name }})
+                  </div>
+                  <div class="p-2 bd-highlight">
+                    <form method="POST" action="{% url 'profile' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="friend_id" value="{{ incoming_user.id }}">
+                      <input type="hidden" name="action" value="accept">
+                      <button class="btn btn-success" value="accept" name="ACCEPT">ACCEPT</button>
+                    </form>
+                  </div>
+                  <div class="p-2 bd-highlight">
+                    <form method="POST" action="{% url 'profile' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="friend_id" value="{{ incoming_user.id }}">
+                      <input type="hidden" name="action" value="reject">
+                      <button class="btn btn-danger" value="reject" name="REJECT">REJECT</button>
+                    </form>
+                  </div>
+                </div>
+              </li>
               {% endfor %}
             </ul>
+            {% else %}
+            <p>No incoming friend requests.</p>
+            {% endif %}
           </div>
-          
-         <!-- Pending Section -->
+
+          <!-- Pending Section -->
           <div id="pending-section" class="tab-pane fade">
             <ul id="pending-list" class="pending-list">
               {% for pending_user in pending_requests %}
-              <li>{{ pending_user.username }}</li>
+              <li>
+                <div class="d-flex bd-highlight">
+                  <div class="p-2 flex-grow-1 bd-highlight">
+                    <strong>{{ pending_user.username }}</strong> ({{ pending_user.name }})
+                  </div>
+                  <div class="p-2 bd-highlight">
+                    <form class="cancel-form" method="POST" action="{% url 'profile' %}">
+                      {% csrf_token %}
+                      <input type="hidden" name="friend_id[]" value="{{ pending_user.id }}">
+                      <input type="hidden" name="friend_username" value="{{ pending_user.username }}">
+                      <input type="hidden" name="action" value="cancel">
+                      <button type="submit" class="btn btn-danger">CANCEL</button>
+                    </form>
+                  </div>
+                </div>
+              </li>
               {% endfor %}
             </ul>
-          </div>        
-      </div>
+          </div>
+          <!-- End Pending Section -->
 
-        <!-- Success Message -->
-        {% if success_message %}
-        <div class="alert alert-success mt-3">
-          {{ success_message }}
         </div>
-        {% endif %}
-
-        <!-- Error Message -->
-        {% if error_message %}
-        <div class="alert alert-danger mt-3">
-          {{ error_message }}
-        </div>
-        {% endif %}
       </div>
     </div>
   </div>
 </div>
+<!-- End Friends Modal -->
 
 
   <div class="card mb-4">

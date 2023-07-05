@@ -7,8 +7,11 @@ from decouple import config
 from datetime import date
 from django.utils import timezone
 from django.http import JsonResponse
+import logging
 
 # Create your views here.
+logger = logging.getLogger(__name__)
+
 def home(request):
     is_logged_in = request.session.get('is_logged_in', False)
     
@@ -77,8 +80,6 @@ def logout(request):
     request.session.clear()
     return redirect('home')
 
-from datetime import date
-
 def signup(request):
     if request.method == 'POST':
         name = request.POST['name']
@@ -102,7 +103,7 @@ def profile(request):
     user_id = request.session.get('user_id')
 
     # Fetch user data
-    with connection.cursor() as cursor:
+    with connection.cursor() as cursor:        
         cursor.execute("SELECT * FROM created_users WHERE id = %s", [user_id])
         user_data = cursor.fetchone()
 
@@ -131,8 +132,7 @@ def profile(request):
                     'username': friend_data[1],
                     'name': friend_data[4]
                 })
-
-            # Fetch friend data with status 'pending'
+            
             cursor.execute("SELECT friend_id FROM user_friends WHERE user_id = %s AND status = %s", [user_id, 'pending'])
             pending_friend_ids = cursor.fetchall()
 
@@ -146,7 +146,6 @@ def profile(request):
                     'name': pending_friend_data[4]
                 })
 
-            # Fetch friend data with status 'incoming'
             cursor.execute("SELECT user_id FROM user_friends WHERE friend_id = %s AND status = %s", [user_id, 'pending'])
             incoming_friend_ids = cursor.fetchall()
 
@@ -161,35 +160,96 @@ def profile(request):
                 })
 
             if request.method == 'POST':
+                friend_id = request.POST.get('friend_id')
+                action = request.POST.get('action')
                 friend_username = request.POST.get('friend_username', '')
 
                 # Check if the friend username exists in the database
                 cursor.execute("SELECT id FROM created_users WHERE username = %s", [friend_username])
+                logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
                 friend_result = cursor.fetchone()
 
                 if friend_result:
                     friend_id = friend_result[0]
 
-                    cursor.execute("INSERT INTO user_friends (user_id, friend_id, status) VALUES (%s, %s, %s)", [user_id, friend_id, 'pending'])
-                    messages.success(request, f"Friend request sent to {friend_username}!")
-                    return redirect('profile')
+                    if action == 'add':
+                        cursor.execute("INSERT INTO user_friends (user_id, friend_id, status) VALUES (%s, %s, %s)",
+                                    [user_id, friend_id, 'pending'])
+                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                        cursor.connection.commit()
+                        messages.success(request, f"Friend request sent to {friend_username}!")
+                        return redirect('profile')
+                    elif action == 'cancel':
+                        friend_username = request.POST.get('friend_username', '')  # Retrieve friend_username from POST data
+                        cursor.execute("DELETE FROM user_friends WHERE status = 'pending' AND friend_id = %s AND user_id = %s",
+                                    [friend_id, user_id])
+                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                        cursor.connection.commit()
+                        messages.success(request, f"Friend request to {friend_username} cancelled successfully!")
+                        return redirect('profile')
+
                 else:
-                    error_message = 'Please enter correct username (case sensitive)'
-                    return render(request, 'profile.html', {
-                        'is_logged_in': is_logged_in,
-                        'name': name,
-                        'username': username,
-                        'email': email,
-                        'date_of_birth': date_of_birth,
-                        'registration_date': registration_date,
-                        'online_status': online_status,
-                        'account_status': account_status,
-                        'last_seen': last_seen,
-                        'friends': friends,
-                        'pending_requests': pending_users,
-                        'incoming_requests': incoming_users,
-                        'error_message': error_message,
-                    })
+                    error_message = 'Please enter correct username (case sensitive)'             
+
+                if friend_id and action:
+                    if action == 'accept':
+                        cursor.execute("UPDATE user_friends SET status = %s WHERE user_id = %s AND friend_id = %s",
+                                        ['accepted', friend_id, user_id])                        
+                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                        # Update the status for the user who sent the friend request
+                        cursor.execute("INSERT INTO user_friends (user_id, friend_id, status) VALUES (%s, %s, %s)",
+                                        [user_id, friend_id, 'accepted'])
+                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                        cursor.connection.commit()
+
+                    elif action == 'reject':
+                        cursor.execute("DELETE FROM user_friends WHERE user_id = %s AND friend_id = %s",
+                                       [friend_id, user_id])
+                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                        cursor.connection.commit()                    
+
+                    # Fetch friend data with updated statuses
+                    cursor.execute("SELECT friend_id FROM user_friends WHERE user_id = %s AND status = %s",
+                                   [user_id, 'accepted'])
+                    friend_ids = cursor.fetchall()
+
+                    friends = []
+                    for friend_id in friend_ids:
+                        cursor.execute("SELECT * FROM created_users WHERE id = %s", [friend_id[0]])
+                        friend_data = cursor.fetchone()
+                        friends.append({
+                            'id': friend_data[0],
+                            'username': friend_data[1],
+                            'name': friend_data[4]
+                        })
+
+                    cursor.execute("SELECT friend_id FROM user_friends WHERE user_id = %s AND status = %s",
+                                   [user_id, 'pending'])
+                    pending_friend_ids = cursor.fetchall()
+
+                    pending_users = []
+                    for pending_friend_id in pending_friend_ids:
+                        cursor.execute("SELECT * FROM created_users WHERE id = %s", [pending_friend_id[0]])
+                        pending_friend_data = cursor.fetchone()
+                        pending_users.append({
+                            'id': pending_friend_data[0],
+                            'username': pending_friend_data[1],
+                            'name': pending_friend_data[4]
+                        })
+
+                    cursor.execute("SELECT user_id FROM user_friends WHERE friend_id = %s AND status = %s",
+                                   [user_id, 'pending'])
+                    incoming_friend_ids = cursor.fetchall()
+
+                    incoming_users = []
+                    for incoming_friend_id in incoming_friend_ids:
+                        cursor.execute("SELECT * FROM created_users WHERE id = %s", [incoming_friend_id[0]])
+                        incoming_friend_data = cursor.fetchone()
+                        incoming_users.append({
+                            'id': incoming_friend_data[0],
+                            'username': incoming_friend_data[1],
+                            'name': incoming_friend_data[4]
+                        })
 
             return render(request, 'profile.html', {
                 'is_logged_in': is_logged_in,
@@ -209,7 +269,6 @@ def profile(request):
     # Handle case when user data is not found
     messages.error(request, 'User data not found.')
     return redirect('user_login')
-
     
 def get_chatbot_response(message):
     openai.api_key = config('OPENAI_API_KEY')   
@@ -241,4 +300,3 @@ def my_404(request, exception):
 
 def error_500(request):
     return render(request, '500.html', status=500)
-
