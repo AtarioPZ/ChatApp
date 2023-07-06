@@ -7,10 +7,8 @@ from decouple import config
 from datetime import date
 from django.utils import timezone
 from django.http import JsonResponse
-import logging
 
 # Create your views here.
-logger = logging.getLogger(__name__)
 
 def home(request):
     is_logged_in = request.session.get('is_logged_in', False)
@@ -165,8 +163,7 @@ def profile(request):
                 friend_username = request.POST.get('friend_username', '')
 
                 # Check if the friend username exists in the database
-                cursor.execute("SELECT id FROM created_users WHERE username = %s", [friend_username])
-                logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                cursor.execute("SELECT id FROM created_users WHERE username = %s", [friend_username])               
                 friend_result = cursor.fetchone()
 
                 if friend_result:
@@ -175,7 +172,6 @@ def profile(request):
                     if action == 'add':
                         cursor.execute("INSERT INTO user_friends (user_id, friend_id, status) VALUES (%s, %s, %s)",
                                     [user_id, friend_id, 'pending'])
-                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
                         cursor.connection.commit()
                         messages.success(request, f"Friend request sent to {friend_username}!")
                         return redirect('profile')
@@ -183,7 +179,6 @@ def profile(request):
                         friend_username = request.POST.get('friend_username', '')  # Retrieve friend_username from POST data
                         cursor.execute("DELETE FROM user_friends WHERE status = 'pending' AND friend_id = %s AND user_id = %s",
                                     [friend_id, user_id])
-                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
                         cursor.connection.commit()
                         messages.success(request, f"Friend request to {friend_username} cancelled successfully!")
                         return redirect('profile')
@@ -194,18 +189,15 @@ def profile(request):
                 if friend_id and action:
                     if action == 'accept':
                         cursor.execute("UPDATE user_friends SET status = %s WHERE user_id = %s AND friend_id = %s",
-                                        ['accepted', friend_id, user_id])                        
-                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
+                                        ['accepted', friend_id, user_id])
                         # Update the status for the user who sent the friend request
                         cursor.execute("INSERT INTO user_friends (user_id, friend_id, status) VALUES (%s, %s, %s)",
                                         [user_id, friend_id, 'accepted'])
-                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
                         cursor.connection.commit()
 
                     elif action == 'reject':
                         cursor.execute("DELETE FROM user_friends WHERE user_id = %s AND friend_id = %s",
                                        [friend_id, user_id])
-                        logger.debug("Executing SQL query: {}".format(cursor.query.decode('utf-8')))
                         cursor.connection.commit()                    
 
                     # Fetch friend data with updated statuses
