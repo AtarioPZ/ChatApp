@@ -320,13 +320,16 @@ def chatpage(request, username=None):
                     message_sender_username = row[2]
                     messages.append({'content': message_content, 'timestamp': message_timestamp, 'sender_username': message_sender_username})
 
+                selected_username = username
                 print(f'messages: {messages}')
             else:
                 messages = []
+                selected_username = None
 
-        return render(request, 'chatpage.html', {'is_logged_in': is_logged_in, 'friends': friends, 'messages': messages})
+        return render(request, 'chatpage.html', {'is_logged_in': is_logged_in, 'friends': friends, 'messages': messages, 'selected_username': selected_username})
     else:
         return redirect('user_login')
+
 
 
 def my_404(request, exception):
