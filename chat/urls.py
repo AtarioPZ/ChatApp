@@ -15,6 +15,7 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('reset-session/', views.reset_session, name='reset_session'),
     path('chat/', views.chatpage, name='chatpage'),
+    path('chat/<str:username>/', views.chatpage, name='chatpage_with_username'),
     
 ]
 

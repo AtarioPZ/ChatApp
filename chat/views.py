@@ -6,10 +6,9 @@ import openai
 from decouple import config
 from datetime import date
 from django.utils import timezone
-from django.http import JsonResponse
+from django.db import connection
 
 # Create your views here.
-
 def home(request):
     is_logged_in = request.session.get('is_logged_in', False)
     
@@ -283,9 +282,52 @@ def reset_session(request):
         messages.success(request, 'Chat session has been reset.')
     return redirect('home')
 
-def chatpage(request):
+def chatpage(request, username=None):
     is_logged_in = request.session.get('is_logged_in', False)
-    return render(request, 'chatpage.html', {'is_logged_in': is_logged_in})
+
+    if is_logged_in:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT created_users.username, created_users.name, user_friends.status
+                FROM created_users
+                INNER JOIN user_friends ON created_users.id = user_friends.friend_id
+                WHERE user_friends.user_id = %s
+            """, [request.session.get('user_id')])
+
+            friends = []
+            for row in cursor.fetchall():
+                friend_username = row[0]
+                friend_name = row[1]
+                friend_status = row[2]
+                friends.append({'username': friend_username, 'name': friend_name, 'status': friend_status})
+
+            if username:
+                cursor.execute("SELECT id FROM created_users WHERE username = %s", [username])
+                friend_id = cursor.fetchone()[0]
+
+                cursor.execute("""
+                    SELECT messages.content, messages.timestamp, created_users.username
+                    FROM messages
+                    INNER JOIN created_users ON messages.sender_id = created_users.id
+                    WHERE (messages.sender_id = %s AND messages.recipient_id = %s) OR (messages.sender_id = %s AND messages.recipient_id = %s)
+                    ORDER BY messages.timestamp ASC
+                """, [request.session.get('user_id'), friend_id, friend_id, request.session.get('user_id')])
+
+                messages = []
+                for row in cursor.fetchall():
+                    message_content = row[0]
+                    message_timestamp = row[1]
+                    message_sender_username = row[2]
+                    messages.append({'content': message_content, 'timestamp': message_timestamp, 'sender_username': message_sender_username})
+
+                print(f'messages: {messages}')
+            else:
+                messages = []
+
+        return render(request, 'chatpage.html', {'is_logged_in': is_logged_in, 'friends': friends, 'messages': messages})
+    else:
+        return redirect('user_login')
+
 
 def my_404(request, exception):
     return render(request, '404.html', status=404)

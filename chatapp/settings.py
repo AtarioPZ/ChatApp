@@ -20,6 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chat',
+    'channels',
+    'realchat',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +53,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'chatapp.wsgi.application'
+
+ASGI_APPLICATION = 'chatapp.asgi.application'
 
 DATABASES = {
     'default': {
