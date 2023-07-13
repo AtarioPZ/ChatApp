@@ -321,7 +321,7 @@ def chatpage(request, username=None):
                     messages.append({'content': message_content, 'timestamp': message_timestamp, 'sender_username': message_sender_username})
 
                 selected_username = username
-                print(f'messages: {messages}')
+                
             else:
                 messages = []
                 selected_username = None
@@ -330,10 +330,37 @@ def chatpage(request, username=None):
     else:
         return redirect('user_login')
 
-
-
 def my_404(request, exception):
     return render(request, '404.html', status=404)
 
 def error_500(request):
     return render(request, '500.html', status=500)
+
+def send_message(request):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        recipient_username = request.POST.get('recipient_username')
+
+        sender_id = request.session.get('user_id')
+
+        with connection.cursor() as cursor:
+            # Get the recipient's ID based on the username
+            cursor.execute("SELECT id FROM created_users WHERE username = %s", [recipient_username])
+            recipient_id = cursor.fetchone()[0]
+
+            # Insert the message into the messages table
+            cursor.execute("""
+                INSERT INTO messages (sender_id, recipient_id, content, timestamp)
+                VALUES (%s, %s, %s, current_timestamp)
+            """, [sender_id, recipient_id, content])
+
+            # Reset the sequence to the maximum existing ID + 1
+            cursor.execute("SELECT MAX(id) FROM messages")
+            max_id = cursor.fetchone()[0]
+            if max_id is not None:
+                cursor.execute("SELECT setval('messages_id_seq', %s)", [max_id + 1])
+
+        return redirect('chatpage_with_username', username=recipient_username)
+    else:
+        return redirect('chatpage')
+
